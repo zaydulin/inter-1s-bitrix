@@ -1,0 +1,15 @@
+services:
+  moedelolk:
+    build: .
+    container_name: moedelolk
+    restart: always
+    ports:
+      - "8081:8080"
+    env_file:
+      - .env
+    environment:
+      - APP_ENV=production
+      - GIN_MODE=release
+    volumes:
+      - ./src/frontend:/root/frontend
+      - ./uploads:/root/uploads

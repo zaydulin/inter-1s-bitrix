@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Синхронизация Bitrix и 1C</title>
+    <style>
+        :root {
+            --bg: #f3ede3;
+            --panel: #fffaf3;
+            --text: #1f1c18;
+            --muted: #6c6358;
+            --accent: #c35f33;
+            --ok: #2d6a4f;
+            --err: #a61e4d;
+            --line: #d8c8b6;
+        }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            font-family: Georgia, "Times New Roman", serif;
+            color: var(--text);
+            background:
+                radial-gradient(circle at top left, rgba(195, 95, 51, 0.18), transparent 26%),
+                linear-gradient(135deg, #efe6d8 0%, var(--bg) 100%);
+        }
+        .wrap {
+            max-width: 1080px;
+            margin: 0 auto;
+            padding: 40px 20px 60px;
+        }
+        .hero {
+            margin-bottom: 28px;
+        }
+        h1 {
+            margin: 0 0 10px;
+            font-size: clamp(2rem, 5vw, 4rem);
+            line-height: 0.95;
+            letter-spacing: -0.04em;
+        }
+        .hero p {
+            max-width: 680px;
+            margin: 0;
+            color: var(--muted);
+            font-size: 1.05rem;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: minmax(300px, 360px) 1fr;
+            gap: 24px;
+            align-items: start;
+        }
+        .card {
+            background: color-mix(in srgb, var(--panel) 88%, white);
+            border: 1px solid var(--line);
+            border-radius: 24px;
+            padding: 24px;
+            box-shadow: 0 18px 40px rgba(65, 43, 24, 0.08);
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 700;
+        }
+        select, button {
+            width: 100%;
+            border-radius: 14px;
+            padding: 14px 16px;
+            font-size: 1rem;
+            border: 1px solid var(--line);
+        }
+        button {
+            margin-top: 16px;
+            border: none;
+            background: var(--accent);
+            color: #fff;
+            cursor: pointer;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            text-align: left;
+            padding: 12px 8px;
+            border-bottom: 1px solid var(--line);
+            vertical-align: top;
+        }
+        th { color: var(--muted); font-size: 0.9rem; }
+        .status-success { color: var(--ok); }
+        .status-failed { color: var(--err); }
+        .messages {
+            list-style: none;
+            padding: 0;
+            margin: 0 0 20px;
+        }
+        .messages li {
+            padding: 12px 14px;
+            border-radius: 14px;
+            margin-bottom: 10px;
+            background: #f7efe5;
+            border: 1px solid var(--line);
+        }
+        @media (max-width: 860px) {
+            .grid { grid-template-columns: 1fr; }
+            .card { padding: 18px; }
+            th:nth-child(4), td:nth-child(4) { display: none; }
+        }
+    </style>
+</head>
+<body>
+<div class="wrap">
+    <section class="hero">
+        <h1>Bitrix x 1C</h1>
+        <p>Ручной запуск двусторонней синхронизации. Проект забирает данные из источника и отправляет их в целевую систему через HTTP JSON API.</p>
+    </section>
+
+    {% if messages %}
+        <ul class="messages">
+            {% for message in messages %}
+                <li>{{ message }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+
+    <section class="grid">
+        <div class="card">
+            <h2>Ручной запуск</h2>
+            <form method="post">
+                {% csrf_token %}
+                <label for="{{ form.direction.id_for_label }}">{{ form.direction.label }}</label>
+                {{ form.direction }}
+                <button type="submit">Запустить синхронизацию</button>
+            </form>
+        </div>
+
+        <div class="card">
+            <h2>Последние запуски</h2>
+            <table>
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Направление</th>
+                    <th>Статус</th>
+                    <th>Старт</th>
+                    <th>Получено</th>
+                    <th>Отправлено</th>
+                    <th>Сообщение</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for execution in executions %}
+                    <tr>
+                        <td>{{ execution.id }}</td>
+                        <td>{{ execution.get_direction_display }}</td>
+                        <td class="status-{{ execution.status }}">{{ execution.get_status_display }}</td>
+                        <td>{{ execution.started_at|date:"d.m.Y H:i:s" }}</td>
+                        <td>{{ execution.pulled_count }}</td>
+                        <td>{{ execution.pushed_count }}</td>
+                        <td>{{ execution.message|default:"-" }}</td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="7">Запусков пока нет.</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+</div>
+</body>
+</html>
