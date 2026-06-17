@@ -20,6 +20,15 @@ python manage.py createsuperuser
 python manage.py runserver
 ```
 
+## Docker
+
+```bash
+make build
+make run
+```
+
+Приложение будет доступно на `http://127.0.0.1:8081/`.
+
 ## Настройка
 
 Основные параметры лучше задавать через переменные окружения:

@@ -1,47 +1,19 @@
-FROM golang:1.26-alpine AS builder
+FROM python:3.12-alpine
 
-# Устанавливаем необходимые пакеты
-RUN apk add --no-cache git
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
 
 WORKDIR /app
 
-# Копируем go.mod из папки src
-COPY src/go.mod ./
+RUN apk add --no-cache bash
 
-# Скачиваем зависимости
-RUN go mod download
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
 
-# Копируем весь исходный код из папки src
-COPY src/ .
+COPY . .
 
-# ВАЖНО: Выполняем go mod tidy для синхронизации зависимостей
-RUN go mod tidy
+RUN mkdir -p /app/staticfiles
 
-# Собираем приложение
-RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o moedelolk ./cmd/web
+EXPOSE 8000
 
-# Финальный образ
-FROM alpine:latest
-
-RUN apk --no-cache add \
-    ca-certificates \
-    chromium \
-    nss \
-    freetype \
-    harfbuzz \
-    ttf-dejavu \
-    fontconfig \
-    font-liberation
-
-WORKDIR /root/
-RUN mkdir -p /root/uploads
-
-# Копируем бинарник
-COPY --from=builder /app/moedelolk .
-
-# Копируем фронтенд
-COPY --from=builder /app/frontend ./frontend
-
-EXPOSE 8080
-
-CMD ["./moedelolk"]
+CMD ["sh", "-c", "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"]

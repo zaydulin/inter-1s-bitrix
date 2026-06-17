@@ -4,12 +4,13 @@ services:
     container_name: moedelolk
     restart: always
     ports:
-      - "8081:8080"
+      - "8081:8000"
     env_file:
       - .env
     environment:
-      - APP_ENV=production
-      - GIN_MODE=release
+      - DJANGO_DEBUG=false
+      - DJANGO_ALLOWED_HOSTS=*
     volumes:
-      - ./src/frontend:/root/frontend
-      - ./uploads:/root/uploads
+      - ./db.sqlite3:/app/db.sqlite3
+      - ./staticfiles:/app/staticfiles
+      - ./uploads:/app/uploads
