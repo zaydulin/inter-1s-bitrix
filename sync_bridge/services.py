@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from typing import Any
 
 from django.conf import settings
 from django.utils import timezone
@@ -38,16 +39,26 @@ class SyncService:
             headers=onec_headers,
         )
 
-    def run(self, direction: str) -> SyncExecution:
+    def fetch_invoice_list(self, date_from: str = "", date_to: str = "", inn: str = "") -> list[dict[str, Any]]:
+        payload: dict[str, str] = {}
+        if date_from:
+            payload["date_from"] = date_from
+        if date_to:
+            payload["date_to"] = date_to
+        if inn:
+            payload["inn"] = inn
+        return self.onec_client.post_json_list(settings.ONEC_INVOICE_LIST_PATH, payload)
+
+    def run(self, direction: str, date_from: str = "", date_to: str = "", inn: str = "") -> SyncExecution:
         execution = SyncExecution.objects.create(direction=direction)
         try:
             if direction == SyncExecution.DIRECTION_BITRIX_TO_ONEC:
                 result = self.sync_bitrix_to_onec()
             elif direction == SyncExecution.DIRECTION_ONEC_TO_BITRIX:
-                result = self.sync_onec_to_bitrix()
+                result = self.sync_onec_to_bitrix(date_from=date_from, date_to=date_to, inn=inn)
             elif direction == SyncExecution.DIRECTION_BOTH:
                 first = self.sync_bitrix_to_onec()
-                second = self.sync_onec_to_bitrix()
+                second = self.sync_onec_to_bitrix(date_from=date_from, date_to=date_to, inn=inn)
                 result = SyncResult(
                     pulled_count=first.pulled_count + second.pulled_count,
                     pushed_count=first.pushed_count + second.pushed_count,
@@ -81,8 +92,8 @@ class SyncService:
             message="Данные выгружены из Bitrix и отправлены в 1C.",
         )
 
-    def sync_onec_to_bitrix(self) -> SyncResult:
-        items = self.onec_client.get_json(settings.ONEC_SOURCE_PATH)
+    def sync_onec_to_bitrix(self, date_from: str = "", date_to: str = "", inn: str = "") -> SyncResult:
+        items = self.fetch_invoice_list(date_from=date_from, date_to=date_to, inn=inn)
         pushed = 0
         for item in items:
             self.bitrix_client.post_json(settings.BITRIX_TARGET_PATH, item)

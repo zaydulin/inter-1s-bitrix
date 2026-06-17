@@ -31,6 +31,16 @@ class HttpClient:
             return response
         return {"result": response}
 
+    def post_json_list(self, path: str, payload: dict[str, Any]) -> list[dict[str, Any]]:
+        response = self._request("POST", path, payload)
+        if isinstance(response, list):
+            return response
+        if isinstance(response, dict):
+            items = response.get("items")
+            if isinstance(items, list):
+                return items
+        raise IntegrationError("Ожидался JSON-массив или объект с ключом 'items'.")
+
     def _request(self, method: str, path: str, payload: dict[str, Any] | None = None) -> Any:
         url = parse.urljoin(self.base_url.rstrip("/") + "/", path.lstrip("/"))
         data = None

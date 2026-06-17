@@ -18,9 +18,17 @@ class Command(BaseCommand):
             ],
             help="Направление синхронизации.",
         )
+        parser.add_argument("--date-from", default="", help="Фильтр даты начала в формате YYYY-MM-DD.")
+        parser.add_argument("--date-to", default="", help="Фильтр даты окончания в формате YYYY-MM-DD.")
+        parser.add_argument("--inn", default="", help="Фильтр по ИНН.")
 
     def handle(self, *args, **options):
-        execution = SyncService().run(options["direction"])
+        execution = SyncService().run(
+            options["direction"],
+            date_from=options["date_from"],
+            date_to=options["date_to"],
+            inn=options["inn"],
+        )
         if execution.status == SyncExecution.STATUS_FAILED:
             raise CommandError(execution.message)
         self.stdout.write(

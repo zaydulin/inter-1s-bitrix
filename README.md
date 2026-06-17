@@ -32,7 +32,7 @@ python manage.py runserver
 - `BITRIX_TARGET_PATH`
 - `BITRIX_AUTH_TOKEN`
 - `ONEC_BASE_URL`
-- `ONEC_SOURCE_PATH`
+- `ONEC_INVOICE_LIST_PATH`
 - `ONEC_TARGET_PATH`
 - `ONEC_USERNAME`
 - `ONEC_PASSWORD`
@@ -46,7 +46,7 @@ export BITRIX_SOURCE_PATH='/crm/export'
 export BITRIX_TARGET_PATH='/crm/import'
 export BITRIX_AUTH_TOKEN='token'
 export ONEC_BASE_URL='https://1c.local'
-export ONEC_SOURCE_PATH='/api/export'
+export ONEC_INVOICE_LIST_PATH='/ut/hs/bitrixintegration/invoice/list'
 export ONEC_TARGET_PATH='/api/import'
 export ONEC_USERNAME='user'
 export ONEC_PASSWORD='password'
@@ -62,15 +62,15 @@ export ONEC_PASSWORD='password'
 Веб:
 
 - откройте `http://127.0.0.1:8000/`
-- выберите направление
-- нажмите кнопку запуска
+- сначала выберите действие `Получить список`
+- задайте `date_from`, `date_to`, `inn`, если нужны фильтры
+- после проверки списка переключите действие на `Запустить синхронизацию`
 
 CLI:
 
 ```bash
 python manage.py run_sync --direction both
-python manage.py run_sync --direction bitrix_to_1c
-python manage.py run_sync --direction 1c_to_bitrix
+python manage.py run_sync --direction 1c_to_bitrix --date-from 2026-01-01 --date-to 2026-01-31 --inn 7701234567
 ```
 
 ## Структура

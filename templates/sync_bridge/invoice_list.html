@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Список счетов 1C</title>
+    <style>
+        :root {
+            --bg: #efe7da;
+            --panel: #fffaf2;
+            --text: #1e1a16;
+            --muted: #726759;
+            --accent: #9f4c2e;
+            --line: #d9c7af;
+        }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            font-family: Georgia, "Times New Roman", serif;
+            color: var(--text);
+            background: linear-gradient(180deg, #f5efe4 0%, var(--bg) 100%);
+        }
+        .wrap {
+            max-width: 1080px;
+            margin: 0 auto;
+            padding: 36px 20px 60px;
+        }
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            gap: 16px;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+        .topbar a {
+            color: var(--accent);
+            text-decoration: none;
+            font-weight: 700;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: 320px 1fr;
+            gap: 24px;
+            align-items: start;
+        }
+        .card {
+            background: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: 24px;
+            padding: 24px;
+            box-shadow: 0 16px 36px rgba(63, 43, 22, 0.08);
+        }
+        .fields {
+            display: grid;
+            gap: 14px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 700;
+        }
+        input, button {
+            width: 100%;
+            padding: 14px 16px;
+            border-radius: 14px;
+            border: 1px solid var(--line);
+            background: white;
+            font-size: 1rem;
+        }
+        button {
+            margin-top: 16px;
+            background: var(--accent);
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        .messages {
+            list-style: none;
+            padding: 0;
+            margin: 0 0 18px;
+        }
+        .messages li {
+            background: #f6eee2;
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            padding: 12px 14px;
+            margin-bottom: 10px;
+        }
+        pre {
+            margin: 0;
+            white-space: pre-wrap;
+            word-break: break-word;
+            overflow-x: auto;
+            font-size: 0.92rem;
+        }
+        @media (max-width: 860px) {
+            .grid { grid-template-columns: 1fr; }
+            .topbar { flex-direction: column; align-items: flex-start; }
+        }
+    </style>
+</head>
+<body>
+<div class="wrap">
+    <div class="topbar">
+        <div>
+            <h1>Список счетов из 1C</h1>
+            <p>Отдельная страница для получения списка по дате.</p>
+        </div>
+        <a href="{% url 'sync_bridge:dashboard' %}">Перейти к синхронизации</a>
+    </div>
+
+    {% if messages %}
+        <ul class="messages">
+            {% for message in messages %}
+                <li>{{ message }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+
+    <section class="grid">
+        <div class="card">
+            <form method="post">
+                {% csrf_token %}
+                <div class="fields">
+                    <div>
+                        <label for="{{ form.date_from.id_for_label }}">{{ form.date_from.label }}</label>
+                        {{ form.date_from }}
+                    </div>
+                    <div>
+                        <label for="{{ form.date_to.id_for_label }}">{{ form.date_to.label }}</label>
+                        {{ form.date_to }}
+                    </div>
+                    <div>
+                        <label for="{{ form.inn.id_for_label }}">{{ form.inn.label }}</label>
+                        {{ form.inn }}
+                    </div>
+                </div>
+                <button type="submit">Получить список</button>
+            </form>
+        </div>
+
+        <div class="card">
+            <h2>Результат</h2>
+            {% if invoice_count %}
+                <p>Получено записей: {{ invoice_count }}</p>
+                <pre>{{ invoice_list }}</pre>
+            {% else %}
+                <p>Список пока не загружен.</p>
+            {% endif %}
+        </div>
+    </section>
+</div>
+</body>
+</html>
